@@ -1,0 +1,6 @@
+name: Graves
+version: '${project.version}'
+main: kare.graves.Graves
+api-version: 1.19
+authors: [ Kare ]
+description: A more fair keepInventory.
