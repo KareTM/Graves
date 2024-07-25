@@ -1,6 +1,11 @@
 name: Graves
 version: '${project.version}'
 main: kare.graves.Graves
-api-version: 1.19
+api-version: 1.21
 authors: [ Kare ]
 description: A more fair keepInventory.
+
+commands:
+  graves:
+    description: Shows help book
+    usage: /graves

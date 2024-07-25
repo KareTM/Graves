@@ -1,17 +1,21 @@
 package kare.graves;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,10 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static kare.graves.Utils.*;
@@ -112,7 +113,6 @@ public final class Graves extends JavaPlugin implements CommandExecutor, Listene
         if (!this.getDataFolder().exists())
             this.getDataFolder().mkdir();
 
-        Objects.requireNonNull(this.getCommand("gravegui")).setExecutor(this);
         getServer().getPluginManager().registerEvents(this, this);
 
         voidReceiverInstance = new VoidReceiver();
@@ -126,6 +126,8 @@ public final class Graves extends JavaPlugin implements CommandExecutor, Listene
         loadGraves();
         loadVoid();
         voidReceiverInstance.loadData(voidFile);
+
+        getCommand("graves").setExecutor(this);
     }
 
     void saveGraves() {
@@ -318,5 +320,109 @@ public final class Graves extends JavaPlugin implements CommandExecutor, Listene
     public void onEntityExplode(EntityExplodeEvent e) {
         ArrayList<Block> found = getGravesContained(e);
         e.blockList().removeIf(found::contains);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(Component.text("Only players can use this command."));
+            return true;
+        }
+
+        Player player = (Player) sender;
+
+        Component pageOne = Component.text("  ===")
+                .decorate(TextDecoration.BOLD)
+                .decorate(TextDecoration.ITALIC)
+                .toBuilder()
+                .append(Component.text(" Graves ").decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false),
+                        Component.text("===").decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text("""
+
+
+                        This plugin generates graves on the player's death. Items in graves do not despawn and you will be notified in chat about the location the grave spawned at.
+                        The grave will spawn in the first air block at or above where you died.""")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .build();
+
+        Component pageTwo = Component.text("  ===")
+                .decorate(TextDecoration.BOLD)
+                .decorate(TextDecoration.ITALIC)
+                .toBuilder()
+                .append(Component.text(" Graves ").decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false),
+                        Component.text("===").decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text("""
+
+
+                        If you die in the void, the process is a little more complicated.
+                        You will require a\040""")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .append(Component.text("Void Receiver")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, true))
+                .append(Component.text(" to be able to access the items.\n")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .append(Component.text("\nEach use of the Receiver requires a charge and lets you get back a double chest worth of items.")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .build();
+
+        Component pageThree = Component.text("  ===")
+                .decorate(TextDecoration.BOLD)
+                .decorate(TextDecoration.ITALIC)
+                .toBuilder()
+                .append(Component.text(" Graves ").decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false),
+                        Component.text("===").decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text("""
+
+
+                        To charge the Receiver you need to use a\040""")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .append(Component.text("Void Charge")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, true))
+                .append(Component.text(" which can be crafted using 8 ")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .append(Component.text("Charged Pearls.")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, true))
+                .append(Component.text("\nThe recipe book might try to use normal pearls when autocrafting the charge. This is an issue with minecraft.")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .build();
+
+        Component pageFour = Component.text("  ===")
+                .decorate(TextDecoration.BOLD)
+                .decorate(TextDecoration.ITALIC)
+                .toBuilder()
+                .append(Component.text(" Graves ").decorate(TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false),
+                        Component.text("===").decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text("""
+
+
+                        Lastly, right click the receiver with the charge.
+                        The Receiver can hold up to 4 charges at a time.""")
+                        .decoration(TextDecoration.BOLD, false)
+                        .decoration(TextDecoration.ITALIC, false))
+                .build();
+
+
+        List<Component> pages = new ArrayList<>();
+        pages.add(pageOne);
+        pages.add(pageTwo);
+        pages.add(pageThree);
+        pages.add(pageFour);
+
+        var a = Audience.audience(player);
+
+        // Open the book for the player
+        a.openBook(Book.book(Component.text("SimpleSort"), Component.text("Kare"), pages));
+
+        return true;
     }
 }
